@@ -2,7 +2,7 @@
 
 ## Homebrew
 
-Use `infrasecture/tap`.
+Use the shared `infrasecture/homebrew-tap` repository.
 
 Formulas:
 
@@ -28,9 +28,9 @@ output = shell_output("#{bin}/myharness version")
 assert_match "myharness ", output
 ```
 
-The release script is designed to be extended with a tap checkout or submodule
-without touching Vaka formula paths. Keep `myharness.rb` and
-`myharness-nightly.rb` updates scoped to those files.
+The shared tap also carries Vaka formulas. Keep myHarness updates scoped to
+`Formula/myharness.rb` and `Formula/myharness-nightly.rb` so release automation
+does not touch `Formula/vaka.rb` or `Formula/vaka-nightly.rb`.
 
 ## Linux Packages
 

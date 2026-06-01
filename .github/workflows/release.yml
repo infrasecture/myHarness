@@ -34,6 +34,7 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           if [[ "${{ inputs.nightly }}" == "true" ]]; then
             ./release.sh --nightly

@@ -21,7 +21,7 @@ sudo install -m 0755 bin/myCodex bin/myClaude bin/myOpenCode bin/myHermes /usr/l
 ## Homebrew
 
 ```bash
-brew tap infrasecture/tap
+brew tap infrasecture/homebrew-tap
 brew install myharness
 ```
 

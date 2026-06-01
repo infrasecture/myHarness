@@ -32,5 +32,6 @@ Nightly releases:
 ```
 
 `release.sh` creates GitHub releases through `gh`, uploads artifacts, and updates
-`infrasecture/tap` when the tap can be cloned or a `TAP_DIR` checkout is
-provided.
+the shared `infrasecture/homebrew-tap`. In GitHub Actions, set
+`HOMEBREW_TAP_TOKEN` to a token with write access to the tap; locally, either use
+an authenticated `gh` session or pass `TAP_TOKEN`.

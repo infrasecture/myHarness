@@ -39,10 +39,22 @@ update_tap() {
   sha_amd64="$(sha256sum "${tar_amd64}" | awk '{print $1}')"
   sha_arm64="$(sha256sum "${tar_arm64}" | awk '{print $1}')"
 
-  TAP_REPO="${TAP_REPO:-infrasecture/tap}"
+  TAP_REPO="${TAP_REPO:-infrasecture/homebrew-tap}"
   TAP_DIR="${TAP_DIR:-dist/tap}"
+  if ! gh repo view "${TAP_REPO}" >/dev/null 2>&1; then
+    echo "Skipping tap update: ${TAP_REPO} is unavailable to this release token." >&2
+    return
+  fi
+  if [[ -n "${GITHUB_ACTIONS:-}" && -z "${TAP_TOKEN:-}" ]]; then
+    echo "Skipping tap update: HOMEBREW_TAP_TOKEN is not configured." >&2
+    return
+  fi
   if [[ ! -d "${TAP_DIR}/.git" ]]; then
-    gh repo clone "${TAP_REPO}" "${TAP_DIR}"
+    if [[ -n "${TAP_TOKEN:-}" ]]; then
+      git clone "https://x-access-token:${TAP_TOKEN}@github.com/${TAP_REPO}.git" "${TAP_DIR}"
+    else
+      gh repo clone "${TAP_REPO}" "${TAP_DIR}"
+    fi
   fi
   mkdir -p "${TAP_DIR}/Formula"
   formula="${TAP_DIR}/Formula/${formula_name}.rb"
@@ -107,7 +119,7 @@ fi
 
 VERSION="${TAG}" ./build.sh --release --packages --push
 
-mapfile -t assets < <(find dist -maxdepth 1 -type f | sort)
+mapfile -t assets < <(find dist -maxdepth 1 -type f ! -name myharness-local ! -name 'nfpm-*.yaml' | sort)
 args=(release create "${TAG}" "${assets[@]}" --title "${TITLE:-${TAG}}" "${PRERELEASE[@]}")
 if [[ -n "${NOTES_FILE}" ]]; then
   args+=(--notes-file "${NOTES_FILE}")
