@@ -48,3 +48,25 @@ jobs:
           fi
       - name: Smoke metadata
         run: docker image ls ghcr.io/infrasecture/myharness-* --format '{{.Repository}}:{{.Tag}}'
+      - name: Smoke base runtime
+        run: docker run --rm -e MYHARNESS_HOST_UID="$(id -u)" -e MYHARNESS_HOST_GID="$(id -g)" ghcr.io/infrasecture/myharness-base:dev id harness
+      - name: Smoke harness CLIs
+        run: |
+          selected="${{ inputs.image || 'all' }}"
+          smoke() {
+            local image="$1"
+            shift
+            docker run --rm -e MYHARNESS_HOST_UID="$(id -u)" -e MYHARNESS_HOST_GID="$(id -g)" "ghcr.io/infrasecture/myharness-${image}:dev" "$@"
+          }
+          if [[ "${selected}" == "all" || "${selected}" == "codex" ]]; then
+            smoke codex codex --version
+          fi
+          if [[ "${selected}" == "all" || "${selected}" == "claude" ]]; then
+            smoke claude claude --version
+          fi
+          if [[ "${selected}" == "all" || "${selected}" == "opencode" ]]; then
+            smoke opencode opencode --version
+          fi
+          if [[ "${selected}" == "all" || "${selected}" == "hermes" ]]; then
+            smoke hermes hermes --version
+          fi
