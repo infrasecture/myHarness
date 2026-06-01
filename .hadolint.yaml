@@ -1,0 +1,5 @@
+ignored:
+  - DL3002 # runtime entrypoint starts as root to create the host-mapped user
+  - DL3006 # variant base image is overridden by workflows/build scripts
+  - DL3008 # workstation images intentionally track distro security updates
+  - DL3015 # workstation image intentionally includes recommended tools
