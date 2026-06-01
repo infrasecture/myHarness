@@ -31,8 +31,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install nfpm
-        uses: goreleaser/nfpm-action@v2
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
