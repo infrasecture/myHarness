@@ -1,0 +1,19 @@
+name: myharness
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+section: utils
+priority: optional
+maintainer: infrasecture
+description: Profile-driven containerized workstation for autonomous coding agents.
+contents:
+  - src: dist/myharness-linux-${ARCH}
+    dst: /usr/local/bin/myharness
+  - src: bin/myCodex
+    dst: /usr/local/bin/myCodex
+  - src: bin/myClaude
+    dst: /usr/local/bin/myClaude
+  - src: bin/myOpenCode
+    dst: /usr/local/bin/myOpenCode
+  - src: bin/myHermes
+    dst: /usr/local/bin/myHermes

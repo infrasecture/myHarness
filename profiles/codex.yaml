@@ -1,0 +1,27 @@
+apiVersion: myharness.infrasecture.io/v1alpha1
+kind: HarnessProfile
+name: codex
+displayName: myCodex
+image: ghcr.io/infrasecture/myharness-codex:latest
+defaultCommand: byobu
+defaultSession: codex
+homeDirs:
+  - /home/myharness/.codex
+environment:
+  CODEX_HOME: /home/myharness/.codex
+config:
+  files:
+    - path: /home/myharness/.codex/config.toml
+      mode: "0600"
+      content: |
+        approval_policy = "never"
+        sandbox_mode = "danger-full-access"
+
+        [projects."/workspace"]
+        trust_level = "trusted"
+healthcheck: byobu-tmux has-session -t "$${MYHARNESS_SESSION:-codex}" >/dev/null 2>&1
+banner: "Run Codex with: codex"
+vakaPolicyTemplate: examples/vaka.yaml
+versionResolver:
+  type: npm
+  package: "@openai/codex"

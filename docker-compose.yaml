@@ -1,0 +1,27 @@
+services:
+  myharness:
+    image: ghcr.io/infrasecture/myharness-codex:latest
+    init: true
+    tty: true
+    stdin_open: true
+    working_dir: /workspace
+    environment:
+      MYHARNESS_HARNESS: codex
+      MYHARNESS_SESSION: codex
+      MYHARNESS_HOST_UID: "${MYHARNESS_HOST_UID:-1000}"
+      MYHARNESS_HOST_GID: "${MYHARNESS_HOST_GID:-1000}"
+      CODEX_HOME: /home/myharness/.codex
+    healthcheck:
+      test: ["CMD-SHELL", "byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-codex}\" >/dev/null 2>&1"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+      start_period: 1s
+    volumes:
+      - ${WORKSPACE_DIR:-./}:/workspace
+      - myharness_state:/home/myharness
+
+volumes:
+  myharness_state:
+    name: ${MYHARNESS_STATE_VOLUME_NAME:-myharness_state}
+    external: true

@@ -1,0 +1,5 @@
+myHarness workstation session is running.
+
+Detach: Ctrl+a d
+New window: Ctrl+a c
+Next/previous window: Ctrl+a n / Ctrl+a p

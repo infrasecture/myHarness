@@ -1,0 +1,7 @@
+apiVersion: myharness.infrasecture.io/v1alpha1
+kind: HarnessProfile
+name: opencode
+displayName: myOpenCode
+image: ghcr.io/infrasecture/myharness-opencode:latest
+defaultCommand: byobu
+defaultSession: opencode

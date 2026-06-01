@@ -1,0 +1,7 @@
+services:
+  myharness:
+    image: ghcr.io/infrasecture/myharness-claude:latest
+    init: true
+    tty: true
+    stdin_open: true
+    working_dir: /workspace

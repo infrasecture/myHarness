@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Go test
+        run: |
+          test -z "$(gofmt -l cmd internal)"
+          go test ./...
+          go vet ./...
+      - name: Staticcheck
+        uses: dominikh/staticcheck-action@v1
+        with:
+          version: latest
+      - name: Build CLI
+        run: ./build.sh --cli
+      - name: Validate profiles and Compose rendering
+        run: |
+          ./dist/myharness-local profiles validate
+          ./dist/myharness-local --harness codex compose config >/tmp/myharness-compose.yaml
+          ruby -e 'require "yaml"; YAML.load_file("/tmp/myharness-compose.yaml")'
+      - name: Validate scripts
+        run: |
+          bash -n build.sh release.sh bin/*
+          shellcheck build.sh release.sh bin/*
+      - name: Dockerfile lint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          recursive: true

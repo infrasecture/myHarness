@@ -1,0 +1,7 @@
+apiVersion: myharness.infrasecture.io/v1alpha1
+kind: HarnessProfile
+name: hermes
+displayName: myHermes
+image: ghcr.io/infrasecture/myharness-hermes:latest
+defaultCommand: byobu
+defaultSession: hermes

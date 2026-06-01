@@ -1,0 +1,22 @@
+apiVersion: myharness.infrasecture.io/v1alpha1
+kind: HarnessProfile
+name: all
+displayName: myHarness All
+image: ghcr.io/infrasecture/myharness-all:latest
+defaultCommand: byobu
+defaultSession: myharness
+homeDirs:
+  - /home/myharness/.codex
+  - /home/myharness/.claude
+  - /home/myharness/.config/opencode
+  - /home/myharness/.hermes
+environment:
+  CODEX_HOME: /home/myharness/.codex
+  CLAUDE_CONFIG_DIR: /home/myharness/.claude
+config:
+  files: []
+healthcheck: byobu-tmux has-session -t "$${MYHARNESS_SESSION:-myharness}" >/dev/null 2>&1
+banner: "Codex, Claude Code, OpenCode, and Hermes tooling are available."
+vakaPolicyTemplate: examples/vaka.yaml
+versionResolver:
+  type: aggregate

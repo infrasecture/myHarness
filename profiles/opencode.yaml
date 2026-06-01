@@ -1,0 +1,18 @@
+apiVersion: myharness.infrasecture.io/v1alpha1
+kind: HarnessProfile
+name: opencode
+displayName: myOpenCode
+image: ghcr.io/infrasecture/myharness-opencode:latest
+defaultCommand: byobu
+defaultSession: opencode
+homeDirs:
+  - /home/myharness/.config/opencode
+environment: {}
+config:
+  files: []
+healthcheck: byobu-tmux has-session -t "$${MYHARNESS_SESSION:-opencode}" >/dev/null 2>&1
+banner: "Run OpenCode with: opencode"
+vakaPolicyTemplate: examples/vaka.yaml
+versionResolver:
+  type: npm
+  package: opencode-ai

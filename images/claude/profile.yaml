@@ -1,0 +1,7 @@
+apiVersion: myharness.infrasecture.io/v1alpha1
+kind: HarnessProfile
+name: claude
+displayName: myClaude
+image: ghcr.io/infrasecture/myharness-claude:latest
+defaultCommand: byobu
+defaultSession: claude

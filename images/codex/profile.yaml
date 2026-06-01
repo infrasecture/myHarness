@@ -1,0 +1,7 @@
+apiVersion: myharness.infrasecture.io/v1alpha1
+kind: HarnessProfile
+name: codex
+displayName: myCodex
+image: ghcr.io/infrasecture/myharness-codex:latest
+defaultCommand: byobu
+defaultSession: codex

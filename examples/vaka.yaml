@@ -1,0 +1,4 @@
+# Example placeholder. Put the real Vaka policy at ~/myharness/vaka.yaml.
+version: 1
+egress:
+  default: deny

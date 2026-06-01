@@ -1,0 +1,17 @@
+apiVersion: myharness.infrasecture.io/v1alpha1
+kind: HarnessProfile
+name: hermes
+displayName: myHermes
+image: ghcr.io/infrasecture/myharness-hermes:latest
+defaultCommand: byobu
+defaultSession: hermes
+homeDirs:
+  - /home/myharness/.hermes
+environment: {}
+config:
+  files: []
+healthcheck: byobu-tmux has-session -t "$${MYHARNESS_SESSION:-hermes}" >/dev/null 2>&1
+banner: "Run Hermes from this session."
+vakaPolicyTemplate: examples/vaka.yaml
+versionResolver:
+  type: manual
