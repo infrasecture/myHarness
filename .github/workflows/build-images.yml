@@ -80,6 +80,12 @@ jobs:
             rm -f "${marker}"
             ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state start
             ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state exec pgrep -u harness tmux
+            if [[ "${harness}" == "codex" ]]; then
+              ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state exec test "$(./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state exec stat -c '%U:%a' /home/myharness/.codex/config.toml)" = "harness:600"
+            fi
+            if [[ "${harness}" == "claude" ]]; then
+              ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state exec test "$(./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state exec stat -c '%U:%a' /home/myharness/.claude/settings.json)" = "harness:600"
+            fi
             ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state exec runuser -u harness -- touch "/workspace/${marker}"
             test -f "${marker}"
             test "$(stat -c '%u:%g' "${marker}")" = "$(id -u):$(id -g)"
