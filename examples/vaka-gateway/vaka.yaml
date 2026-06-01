@@ -1,0 +1,28 @@
+apiVersion: agent.vaka/v1alpha1
+kind: ServicePolicy
+services:
+  myharness:
+    network:
+      egress:
+        defaultAction: reject
+        block_metadata: drop
+        accept:
+          - dns: {}
+          - proto: tcp
+            to: [litellm]
+            ports: [4000]
+  litellm:
+    network:
+      egress:
+        defaultAction: reject
+        block_metadata: drop
+        accept:
+          - dns: {}
+          - proto: tcp
+            to:
+              - api.openai.com
+              - auth.openai.com
+              - api.anthropic.com
+              - api.github.com
+              - github.com
+            ports: [443]

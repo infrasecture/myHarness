@@ -13,6 +13,10 @@ config:
 healthcheck: runuser -u harness -- byobu-tmux has-session -t "$${MYHARNESS_SESSION:-opencode}" >/dev/null 2>&1
 banner: "Run OpenCode with: opencode"
 vakaPolicyTemplate: examples/vaka.yaml
+vakaAllowedHosts:
+  - api.github.com
+  - github.com
+  - registry.npmjs.org
 versionResolver:
   type: npm
   package: opencode-ai

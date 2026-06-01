@@ -1,4 +1,16 @@
-# Example placeholder. Put the real Vaka policy at ~/myharness/vaka.yaml.
-version: 1
-egress:
-  default: deny
+apiVersion: agent.vaka/v1alpha1
+kind: ServicePolicy
+services:
+  {{ .ServiceName }}:
+    network:
+      egress:
+        defaultAction: reject
+        block_metadata: drop
+        accept:
+          - dns: {}
+          - proto: tcp
+            to:
+{{- range .AllowedHosts }}
+              - {{ . }}
+{{- end }}
+            ports: [443]

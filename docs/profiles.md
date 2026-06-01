@@ -29,7 +29,13 @@ Important fields:
 - `healthcheck`
 - `banner`
 - `vakaPolicyTemplate`
+- `vakaAllowedHosts`
 - `versionResolver`
 
 Config files must render under `/home/myharness`. This prevents profiles from
 overwriting managed runtime paths.
+
+`vakaPolicyTemplate` is a Go text/template that renders a Vaka `ServicePolicy`.
+The built-in template receives `ServiceName`, `HarnessName`, and
+`AllowedHosts`. `vakaAllowedHosts` should contain the HTTPS hostnames needed by
+that harness profile.

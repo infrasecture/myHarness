@@ -18,5 +18,18 @@ config:
 healthcheck: runuser -u harness -- byobu-tmux has-session -t "$${MYHARNESS_SESSION:-myharness}" >/dev/null 2>&1
 banner: "Codex, Claude Code, OpenCode, and Hermes tooling are available."
 vakaPolicyTemplate: examples/vaka.yaml
+vakaAllowedHosts:
+  - api.openai.com
+  - auth.openai.com
+  - chatgpt.com
+  - platform.openai.com
+  - api.anthropic.com
+  - claude.ai
+  - platform.claude.com
+  - downloads.claude.ai
+  - storage.googleapis.com
+  - api.github.com
+  - github.com
+  - registry.npmjs.org
 versionResolver:
   type: aggregate

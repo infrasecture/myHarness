@@ -1,0 +1,27 @@
+services:
+  myharness:
+    image: ghcr.io/infrasecture/myharness-codex:latest
+    init: true
+    tty: true
+    stdin_open: true
+    working_dir: /workspace
+    environment:
+      MYHARNESS_HARNESS: codex
+      MYHARNESS_SESSION: codex
+      MYHARNESS_HOST_UID: "1000"
+      MYHARNESS_HOST_GID: "1000"
+      MYHARNESS_HOME: /home/myharness
+      CODEX_HOME: /home/myharness/.codex
+    volumes:
+      - .:/workspace
+      - myharness_state:/home/myharness
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    command: ["--config", "/app/litellm.config.yaml", "--port", "4000"]
+    volumes:
+      - ./litellm.config.yaml:/app/litellm.config.yaml:ro
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+volumes:
+  myharness_state:

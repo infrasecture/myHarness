@@ -31,7 +31,9 @@ jobs:
         run: |
           ./dist/myharness-local profiles validate
           ./dist/myharness-local --harness codex compose config >/tmp/myharness-compose.yaml
+          ./dist/myharness-local --harness codex --network-policy basic vaka config >/tmp/myharness-vaka.yaml
           ruby -e 'require "yaml"; YAML.load_file("/tmp/myharness-compose.yaml")'
+          ruby -e 'require "yaml"; YAML.load_file("/tmp/myharness-vaka.yaml")'
       - name: Validate scripts
         run: |
           bash -n build.sh release.sh bin/*

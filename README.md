@@ -17,8 +17,9 @@ Repository target: `github.com/infrasecture/myHarness`
 - Go 1.22 or a built `myharness` binary
 
 Vaka egress control is optional. If `~/myharness/vaka.yaml` exists, `myharness`
-uses `vaka up --config ~/myharness/vaka.yaml` for startup and requires the
-`vaka` CLI to be installed.
+uses `vaka --vaka-file=$HOME/myharness/vaka.yaml up` for startup and requires the
+`vaka` CLI to be installed. You can also request a generated profile policy
+with `--network-policy basic`.
 
 ## Quick Start
 
@@ -79,6 +80,8 @@ myharness images pull
 myharness images build --harness codex
 myharness compose config
 myharness compose path
+myharness vaka config
+myharness vaka path
 ```
 
 Common flags:
@@ -95,6 +98,7 @@ Common flags:
 --no-build
 --workspace <path>
 --session <name>
+--network-policy <off|auto|basic|path:vaka.yaml>
 --debug
 ```
 
@@ -186,7 +190,7 @@ images/                 Base and per-harness Dockerfiles
 runtime/                Container entrypoint and session initialization
 bin/                    CLI wrappers and compatibility aliases
 docs/                   Distribution and operational docs
-examples/               Example profile and Vaka files
+examples/               Vaka policy template and gateway example
 build.sh                Local build workflow
 release.sh              GitHub release workflow
 ```

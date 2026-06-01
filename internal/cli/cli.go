@@ -17,23 +17,25 @@ import (
 
 	"github.com/infrasecture/myHarness/internal/compose"
 	"github.com/infrasecture/myHarness/internal/profiles"
+	"github.com/infrasecture/myHarness/internal/vaka"
 )
 
 const version = "myharness dev"
 
 type options struct {
-	harness      string
-	profile      string
-	privateEnv   bool
-	harnessState bool
-	volumes      []string
-	image        string
-	pull         bool
-	build        bool
-	noBuild      bool
-	workspace    string
-	session      string
-	debug        bool
+	harness       string
+	profile       string
+	privateEnv    bool
+	harnessState  bool
+	volumes       []string
+	image         string
+	pull          bool
+	build         bool
+	noBuild       bool
+	workspace     string
+	session       string
+	networkPolicy string
+	debug         bool
 }
 
 func Main(args []string) int {
@@ -120,6 +122,8 @@ func Main(args []string) int {
 		return failCode(rt.validate())
 	case "compose":
 		return rt.composeCmd(rest)
+	case "vaka":
+		return rt.vakaCmd(rest)
 	case "images":
 		return imagesCmd(rest, rt, opts)
 	default:
@@ -144,6 +148,7 @@ func parse(args []string) (options, []string, error) {
 	fs.BoolVar(&opts.noBuild, "no-build", false, "")
 	fs.StringVar(&opts.workspace, "workspace", "", "")
 	fs.StringVar(&opts.session, "session", "", "")
+	fs.StringVar(&opts.networkPolicy, "network-policy", "auto", "")
 	fs.BoolVar(&opts.debug, "debug", false, "")
 	if err := fs.Parse(args); err != nil {
 		return opts, nil, err
@@ -159,6 +164,7 @@ type runtimeConfig struct {
 	stateVolume   string
 	composePath   string
 	profilePath   string
+	vakaPath      string
 	workspace     string
 	session       string
 	normalizedVol []string
@@ -190,10 +196,11 @@ func newRuntime(opts options, p profiles.Profile) (*runtimeConfig, error) {
 		}
 		vols = append(vols, n)
 	}
-	hash := sha1.Sum([]byte(opts.workspace + p.Name + strings.Join(vols, "\x00") + state + opts.image + session))
+	hash := sha1.Sum([]byte(opts.workspace + p.Name + strings.Join(vols, "\x00") + state + opts.image + session + opts.networkPolicy))
 	path := filepath.Join(os.TempDir(), "myharness-"+hex.EncodeToString(hash[:8])+".compose.yaml")
 	profilePath := filepath.Join(os.TempDir(), "myharness-"+hex.EncodeToString(hash[:8])+".profile.json")
-	return &runtimeConfig{opts: opts, profile: p, project: project, container: container, stateVolume: state, composePath: path, profilePath: profilePath, workspace: opts.workspace, session: session, normalizedVol: vols}, nil
+	vakaPath := filepath.Join(os.TempDir(), "myharness-"+hex.EncodeToString(hash[:8])+".vaka.yaml")
+	return &runtimeConfig{opts: opts, profile: p, project: project, container: container, stateVolume: state, composePath: path, profilePath: profilePath, vakaPath: vakaPath, workspace: opts.workspace, session: session, normalizedVol: vols}, nil
 }
 
 func (r *runtimeConfig) validate() error {
@@ -244,6 +251,18 @@ func (r *runtimeConfig) ensureProfileFile() error {
 	return os.WriteFile(r.profilePath, data, 0600)
 }
 
+func (r *runtimeConfig) ensureVakaFile() error {
+	f, err := os.Create(r.vakaPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return vaka.Write(f, vaka.Config{
+		Profile:     r.profile,
+		ServiceName: "myharness",
+	})
+}
+
 func (r *runtimeConfig) composeArgs(args ...string) []string {
 	_ = r.ensureComposeFile()
 	out := []string{"docker", "compose", "-p", r.project, "-f", r.composePath}
@@ -269,20 +288,54 @@ func (r *runtimeConfig) up() error {
 			return fmt.Errorf("image build failed")
 		}
 	}
-	if vakaPath := findVakaConfig(); vakaPath != "" {
-		if _, err := exec.LookPath("vaka"); err != nil {
-			return fmt.Errorf("vaka.yaml found at %s but vaka is not installed", vakaPath)
-		}
-		return runErr("vaka", "up", "--config", vakaPath)
-	}
 	waitTimeout := os.Getenv("MYHARNESS_WAIT_TIMEOUT_SECONDS")
 	if waitTimeout == "" {
 		waitTimeout = "60"
+	}
+	if vakaPath, ok, err := r.resolveVakaPolicy(); err != nil {
+		return err
+	} else if ok {
+		if _, err := exec.LookPath("vaka"); err != nil {
+			return fmt.Errorf("vaka policy selected at %s but vaka is not installed", vakaPath)
+		}
+		args := append([]string{"--vaka-file=" + vakaPath}, r.composeGlobalArgs()...)
+		args = append(args, "up", "-d", "--wait", "--wait-timeout", waitTimeout)
+		return runErr("vaka", args...)
 	}
 	if code := run(r.composeArgs("up", "-d", "--wait", "--wait-timeout", waitTimeout)...); code != 0 {
 		return fmt.Errorf("docker compose up failed")
 	}
 	return nil
+}
+
+func (r *runtimeConfig) resolveVakaPolicy() (string, bool, error) {
+	mode := strings.TrimSpace(r.opts.networkPolicy)
+	if mode == "" {
+		mode = "auto"
+	}
+	switch mode {
+	case "off", "none", "disabled":
+		return "", false, nil
+	case "auto":
+		if path := findVakaConfig(); path != "" {
+			return path, true, nil
+		}
+		return "", false, nil
+	case "basic":
+		if err := r.ensureVakaFile(); err != nil {
+			return "", false, err
+		}
+		return r.vakaPath, true, nil
+	default:
+		mode = strings.TrimPrefix(mode, "path:")
+		if mode == "" {
+			return "", false, errors.New("--network-policy path cannot be empty")
+		}
+		if _, err := os.Stat(mode); err != nil {
+			return "", false, fmt.Errorf("vaka policy %s: %w", mode, err)
+		}
+		return mode, true, nil
+	}
 }
 
 func (r *runtimeConfig) ensureStarted() error {
@@ -318,6 +371,33 @@ func (r *runtimeConfig) composeCmd(rest []string) int {
 		return 0
 	default:
 		return run(r.composeArgs(rest...)...)
+	}
+}
+
+func (r *runtimeConfig) vakaCmd(rest []string) int {
+	if len(rest) == 0 {
+		fmt.Fprintln(os.Stderr, "myharness: vaka requires config or path")
+		return 2
+	}
+	switch rest[0] {
+	case "config":
+		if err := r.ensureVakaFile(); err != nil {
+			return fail(err)
+		}
+		data, err := os.ReadFile(r.vakaPath)
+		if err != nil {
+			return fail(err)
+		}
+		fmt.Print(string(data))
+		return 0
+	case "path":
+		if err := r.ensureVakaFile(); err != nil {
+			return fail(err)
+		}
+		fmt.Println(r.vakaPath)
+		return 0
+	default:
+		return run(append([]string{"vaka"}, rest...)...)
 	}
 }
 
@@ -419,6 +499,7 @@ func usage(w io.Writer) {
   myharness images build --harness codex
   myharness compose config
   myharness compose path
+  myharness vaka config
 
 Flags:
   --harness <name>        codex, claude, opencode, hermes, all
@@ -432,6 +513,7 @@ Flags:
   --no-build              disable build
   --workspace <path>      workspace to mount at /workspace
   --session <name>        tmux/byobu session name
+  --network-policy <mode> off, auto, basic, or path:<vaka.yaml>
   --debug                 reserved for verbose diagnostics`)
 }
 
@@ -542,6 +624,11 @@ func findVakaConfig() string {
 		return path
 	}
 	return ""
+}
+
+func (r *runtimeConfig) composeGlobalArgs() []string {
+	_ = r.ensureComposeFile()
+	return []string{"-p", r.project, "-f", r.composePath}
 }
 
 func run(args ...string) int {

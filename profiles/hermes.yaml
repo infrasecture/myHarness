@@ -13,5 +13,8 @@ config:
 healthcheck: runuser -u harness -- byobu-tmux has-session -t "$${MYHARNESS_SESSION:-hermes}" >/dev/null 2>&1
 banner: "Run Hermes from this session."
 vakaPolicyTemplate: examples/vaka.yaml
+vakaAllowedHosts:
+  - api.github.com
+  - github.com
 versionResolver:
   type: manual
