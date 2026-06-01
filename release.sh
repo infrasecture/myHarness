@@ -107,7 +107,8 @@ fi
 
 VERSION="${TAG}" ./build.sh --release --packages --push
 
-args=(release create "${TAG}" dist/* --title "${TITLE:-${TAG}}" "${PRERELEASE[@]}")
+mapfile -t assets < <(find dist -maxdepth 1 -type f | sort)
+args=(release create "${TAG}" "${assets[@]}" --title "${TITLE:-${TAG}}" "${PRERELEASE[@]}")
 if [[ -n "${NOTES_FILE}" ]]; then
   args+=(--notes-file "${NOTES_FILE}")
 else
