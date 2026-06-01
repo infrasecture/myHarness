@@ -16,6 +16,12 @@ Run image builds where Docker is available:
 ./build.sh --images
 ```
 
+Initialize the shared Homebrew tap submodule before local release work:
+
+```bash
+git submodule update --init --checkout -- homebrew-tap
+```
+
 ## Releases
 
 Stable releases require a clean working tree and exactly one `vX.Y.Z` tag on
@@ -32,6 +38,8 @@ Nightly releases:
 ```
 
 `release.sh` creates GitHub releases through `gh`, uploads artifacts, and updates
-the shared `infrasecture/homebrew-tap`. In GitHub Actions, set
-`HOMEBREW_TAP_TOKEN` to a token with write access to the tap; locally, either use
-an authenticated `gh` session or pass `TAP_TOKEN`.
+the shared `infrasecture/homebrew-tap` through the `homebrew-tap` submodule. It
+commits and pushes the tap formula first, then commits and pushes the submodule
+pointer update in this repository. In GitHub Actions, set `HOMEBREW_TAP_TOKEN`
+to a token with write access to the tap; locally, either use git credentials
+that can push the tap or pass `TAP_TOKEN`.

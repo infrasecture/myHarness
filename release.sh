@@ -22,8 +22,12 @@ require() {
 require git
 require gh
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TAP_SUBMODULE="homebrew-tap"
+TAP_REPO_URL="https://github.com/infrasecture/homebrew-tap.git"
+
 update_tap() {
-  local formula tag_name stable formula_name formula_class tar_amd64 tar_arm64 sha_amd64 sha_arm64
+  local current_branch formula tag_name stable formula_name formula_class tap_path tar_amd64 tar_arm64 sha_amd64 sha_arm64
   tag_name="$1"
   stable="$2"
   formula_name="myharness"
@@ -33,31 +37,29 @@ update_tap() {
   else
     formula_class="Myharness"
   fi
-  tar_amd64="dist/myharness-brew-darwin-amd64.tar.gz"
-  tar_arm64="dist/myharness-brew-darwin-arm64.tar.gz"
+  tar_amd64="${SCRIPT_DIR}/dist/myharness-brew-darwin-amd64.tar.gz"
+  tar_arm64="${SCRIPT_DIR}/dist/myharness-brew-darwin-arm64.tar.gz"
   [[ -f "${tar_amd64}" && -f "${tar_arm64}" ]] || { echo "Skipping tap update: missing Homebrew bundles." >&2; return; }
   sha_amd64="$(sha256sum "${tar_amd64}" | awk '{print $1}')"
   sha_arm64="$(sha256sum "${tar_arm64}" | awk '{print $1}')"
 
-  TAP_REPO="${TAP_REPO:-infrasecture/homebrew-tap}"
-  TAP_DIR="${TAP_DIR:-dist/tap}"
-  if ! gh repo view "${TAP_REPO}" >/dev/null 2>&1; then
-    echo "Skipping tap update: ${TAP_REPO} is unavailable to this release token." >&2
-    return
+  tap_path="$(git -C "${SCRIPT_DIR}" config -f .gitmodules --get "submodule.${TAP_SUBMODULE}.path" || true)"
+  [[ "${tap_path}" == "${TAP_SUBMODULE}" ]] || { echo "Missing ${TAP_SUBMODULE} submodule configuration." >&2; exit 1; }
+
+  if [[ -n "${TAP_TOKEN:-}" ]]; then
+    git config --global url."https://x-access-token:${TAP_TOKEN}@github.com/".insteadOf "https://github.com/"
+  elif [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+    echo "HOMEBREW_TAP_TOKEN is required to push ${TAP_REPO_URL} from GitHub Actions." >&2
+    exit 1
   fi
-  if [[ -n "${GITHUB_ACTIONS:-}" && -z "${TAP_TOKEN:-}" ]]; then
-    echo "Skipping tap update: HOMEBREW_TAP_TOKEN is not configured." >&2
-    return
-  fi
-  if [[ ! -d "${TAP_DIR}/.git" ]]; then
-    if [[ -n "${TAP_TOKEN:-}" ]]; then
-      git clone "https://x-access-token:${TAP_TOKEN}@github.com/${TAP_REPO}.git" "${TAP_DIR}"
-    else
-      gh repo clone "${TAP_REPO}" "${TAP_DIR}"
-    fi
-  fi
-  mkdir -p "${TAP_DIR}/Formula"
-  formula="${TAP_DIR}/Formula/${formula_name}.rb"
+
+  git -C "${SCRIPT_DIR}" submodule update --init --checkout -- "${TAP_SUBMODULE}"
+  [[ -z "$(git -C "${SCRIPT_DIR}/${TAP_SUBMODULE}" status --porcelain)" ]] || { echo "${TAP_SUBMODULE} has uncommitted changes." >&2; exit 1; }
+  git -C "${SCRIPT_DIR}/${TAP_SUBMODULE}" fetch origin main
+  git -C "${SCRIPT_DIR}/${TAP_SUBMODULE}" checkout -B main origin/main
+
+  mkdir -p "${SCRIPT_DIR}/${TAP_SUBMODULE}/Formula"
+  formula="${SCRIPT_DIR}/${TAP_SUBMODULE}/Formula/${formula_name}.rb"
   cat >"${formula}" <<EOF
 class ${formula_class} < Formula
   desc "Profile-driven containerized workstation for autonomous coding agents"
@@ -89,15 +91,25 @@ class ${formula_class} < Formula
 end
 EOF
   (
-    cd "${TAP_DIR}"
+    cd "${SCRIPT_DIR}/${TAP_SUBMODULE}"
     git add "Formula/${formula_name}.rb"
     if git diff --cached --quiet; then
       echo "Tap formula already current: ${formula_name}"
     else
-      git commit -m "Update ${formula_name} to ${tag_name}"
-      git push
+      git commit -m "chore(formula): update ${formula_name} to ${tag_name}"
+      git push origin HEAD
     fi
   )
+
+  current_branch="$(git -C "${SCRIPT_DIR}" symbolic-ref --short HEAD || true)"
+  [[ -n "${current_branch}" ]] || { echo "Cannot update ${TAP_SUBMODULE} pointer from a detached HEAD." >&2; exit 1; }
+  git -C "${SCRIPT_DIR}" add "${TAP_SUBMODULE}"
+  if git -C "${SCRIPT_DIR}" diff --cached --quiet; then
+    echo "Homebrew tap submodule already current."
+  else
+    git -C "${SCRIPT_DIR}" commit -m "chore(submodule): bump homebrew-tap after ${tag_name} release"
+    git -C "${SCRIPT_DIR}" push origin "HEAD:${current_branch}"
+  fi
 }
 
 if [[ "${NIGHTLY}" == "1" ]]; then

@@ -2,7 +2,8 @@
 
 ## Homebrew
 
-Use the shared `infrasecture/homebrew-tap` repository.
+Use the shared `infrasecture/homebrew-tap` repository through the
+`homebrew-tap` submodule.
 
 Formulas:
 
@@ -30,7 +31,9 @@ assert_match "myharness ", output
 
 The shared tap also carries Vaka formulas. Keep myHarness updates scoped to
 `Formula/myharness.rb` and `Formula/myharness-nightly.rb` so release automation
-does not touch `Formula/vaka.rb` or `Formula/vaka-nightly.rb`.
+does not touch `Formula/vaka.rb` or `Formula/vaka-nightly.rb`. Release
+automation commits formula changes inside the submodule, pushes the tap, then
+commits the updated submodule pointer in this repository.
 
 ## Linux Packages
 
