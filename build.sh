@@ -79,10 +79,26 @@ build_images() {
       docker tag "${tag}" "${IMAGE_PREFIX}/myharness-${image}:latest"
     fi
     if [[ "${DO_PUSH}" == "1" ]]; then
-      docker push "${tag}"
-      [[ "${PUBLISH_LATEST}" == "true" ]] && docker push "${IMAGE_PREFIX}/myharness-${image}:latest"
+      push_image "${tag}"
+      [[ "${PUBLISH_LATEST}" == "true" ]] && push_image "${IMAGE_PREFIX}/myharness-${image}:latest"
     fi
   done
+}
+
+push_image() {
+  local image attempt
+  image="$1"
+  for attempt in 1 2 3; do
+    if docker push "${image}"; then
+      return 0
+    fi
+    if [[ "${attempt}" == "3" ]]; then
+      break
+    fi
+    echo "docker push failed for ${image}; retrying (${attempt}/3)" >&2
+    sleep $((attempt * 10))
+  done
+  return 1
 }
 
 build_packages() {
