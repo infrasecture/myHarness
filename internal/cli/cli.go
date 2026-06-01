@@ -275,7 +275,11 @@ func (r *runtimeConfig) up() error {
 		}
 		return runErr("vaka", "up", "--config", vakaPath)
 	}
-	if code := run(r.composeArgs("up", "-d", "--wait")...); code != 0 {
+	waitTimeout := os.Getenv("MYHARNESS_WAIT_TIMEOUT_SECONDS")
+	if waitTimeout == "" {
+		waitTimeout = "60"
+	}
+	if code := run(r.composeArgs("up", "-d", "--wait", "--wait-timeout", waitTimeout)...); code != 0 {
 		return fmt.Errorf("docker compose up failed")
 	}
 	return nil

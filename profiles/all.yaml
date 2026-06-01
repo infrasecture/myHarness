@@ -15,7 +15,7 @@ environment:
   CLAUDE_CONFIG_DIR: /home/myharness/.claude
 config:
   files: []
-healthcheck: byobu-tmux has-session -t "$${MYHARNESS_SESSION:-myharness}" >/dev/null 2>&1
+healthcheck: runuser -u harness -- byobu-tmux has-session -t "$${MYHARNESS_SESSION:-myharness}" >/dev/null 2>&1
 banner: "Codex, Claude Code, OpenCode, and Hermes tooling are available."
 vakaPolicyTemplate: examples/vaka.yaml
 versionResolver:

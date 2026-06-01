@@ -12,7 +12,7 @@ services:
       MYHARNESS_HOST_GID: "${MYHARNESS_HOST_GID:-1000}"
       CODEX_HOME: /home/myharness/.codex
     healthcheck:
-      test: ["CMD-SHELL", "byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-codex}\" >/dev/null 2>&1"]
+      test: ["CMD-SHELL", "runuser -u harness -- byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-codex}\" >/dev/null 2>&1"]
       interval: 1s
       timeout: 3s
       retries: 30

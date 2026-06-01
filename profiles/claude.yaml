@@ -21,7 +21,7 @@ config:
             "skipDangerousModePermissionPrompt": true
           }
         }
-healthcheck: byobu-tmux has-session -t "$${MYHARNESS_SESSION:-claude}" >/dev/null 2>&1
+healthcheck: runuser -u harness -- byobu-tmux has-session -t "$${MYHARNESS_SESSION:-claude}" >/dev/null 2>&1
 banner: "Run Claude Code with: claude"
 vakaPolicyTemplate: examples/vaka.yaml
 versionResolver:

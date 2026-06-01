@@ -19,7 +19,7 @@ config:
 
         [projects."/workspace"]
         trust_level = "trusted"
-healthcheck: byobu-tmux has-session -t "$${MYHARNESS_SESSION:-codex}" >/dev/null 2>&1
+healthcheck: runuser -u harness -- byobu-tmux has-session -t "$${MYHARNESS_SESSION:-codex}" >/dev/null 2>&1
 banner: "Run Codex with: codex"
 vakaPolicyTemplate: examples/vaka.yaml
 versionResolver:

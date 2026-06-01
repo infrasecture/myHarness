@@ -10,7 +10,7 @@ homeDirs:
 environment: {}
 config:
   files: []
-healthcheck: byobu-tmux has-session -t "$${MYHARNESS_SESSION:-opencode}" >/dev/null 2>&1
+healthcheck: runuser -u harness -- byobu-tmux has-session -t "$${MYHARNESS_SESSION:-opencode}" >/dev/null 2>&1
 banner: "Run OpenCode with: opencode"
 vakaPolicyTemplate: examples/vaka.yaml
 versionResolver:

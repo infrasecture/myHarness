@@ -61,7 +61,7 @@ trust_level = "trusted"
 `,
 			}},
 		},
-		Healthcheck: "byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-codex}\" >/dev/null 2>&1",
+		Healthcheck: "runuser -u harness -- byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-codex}\" >/dev/null 2>&1",
 		Banner:      "Run Codex with: codex",
 	},
 	"claude": {
@@ -88,7 +88,7 @@ trust_level = "trusted"
 `,
 			}},
 		},
-		Healthcheck: "byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-claude}\" >/dev/null 2>&1",
+		Healthcheck: "runuser -u harness -- byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-claude}\" >/dev/null 2>&1",
 		Banner:      "Run Claude Code with: claude",
 	},
 	"opencode": {
@@ -99,7 +99,7 @@ trust_level = "trusted"
 		DefaultSession: "opencode",
 		HomeDirs:       []string{"/home/myharness/.config/opencode"},
 		Environment:    map[string]string{},
-		Healthcheck:    "byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-opencode}\" >/dev/null 2>&1",
+		Healthcheck:    "runuser -u harness -- byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-opencode}\" >/dev/null 2>&1",
 		Banner:         "Run OpenCode with: opencode",
 	},
 	"hermes": {
@@ -110,7 +110,7 @@ trust_level = "trusted"
 		DefaultSession: "hermes",
 		HomeDirs:       []string{"/home/myharness/.hermes"},
 		Environment:    map[string]string{},
-		Healthcheck:    "byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-hermes}\" >/dev/null 2>&1",
+		Healthcheck:    "runuser -u harness -- byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-hermes}\" >/dev/null 2>&1",
 		Banner:         "Run Hermes from this session.",
 	},
 	"all": {
@@ -124,7 +124,7 @@ trust_level = "trusted"
 			"CODEX_HOME":        "/home/myharness/.codex",
 			"CLAUDE_CONFIG_DIR": "/home/myharness/.claude",
 		},
-		Healthcheck: "byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-myharness}\" >/dev/null 2>&1",
+		Healthcheck: "runuser -u harness -- byobu-tmux has-session -t \"$${MYHARNESS_SESSION:-myharness}\" >/dev/null 2>&1",
 		Banner:      "Codex, Claude Code, OpenCode, and Hermes tooling are available.",
 	},
 }
