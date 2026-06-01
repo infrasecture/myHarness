@@ -70,3 +70,24 @@ jobs:
           if [[ "${selected}" == "all" || "${selected}" == "hermes" ]]; then
             smoke hermes hermes --version
           fi
+      - name: Smoke myHarness Compose startup
+        run: |
+          selected="${{ inputs.image || 'all' }}"
+          ./build.sh --cli
+          smoke_runtime() {
+            local harness="$1"
+            local marker="e2e-${harness}"
+            rm -f "${marker}"
+            ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state start
+            ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state exec pgrep -u harness tmux
+            ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state exec runuser -u harness -- touch "/workspace/${marker}"
+            test -f "${marker}"
+            test "$(stat -c '%u:%g' "${marker}")" = "$(id -u):$(id -g)"
+            ./dist/myharness-local --harness "${harness}" --image "ghcr.io/infrasecture/myharness-${harness}:dev" --workspace "$PWD" --private-env --harness-state down -v
+          }
+          if [[ "${selected}" == "all" || "${selected}" == "codex" ]]; then
+            smoke_runtime codex
+          fi
+          if [[ "${selected}" == "all" || "${selected}" == "claude" ]]; then
+            smoke_runtime claude
+          fi

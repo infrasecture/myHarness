@@ -108,7 +108,10 @@ func Main(args []string) int {
 			fmt.Fprintln(os.Stderr, "myharness: exec requires a command")
 			return 2
 		}
-		return run(rt.composeArgs(append([]string{"exec", "-it", "myharness"}, rest...)...)...)
+		execArgs := append([]string{"exec"}, composeExecTTYFlags()...)
+		execArgs = append(execArgs, "myharness")
+		execArgs = append(execArgs, rest...)
+		return run(rt.composeArgs(execArgs...)...)
 	case "down":
 		return run(rt.composeArgs(append([]string{"down"}, rest...)...)...)
 	case "doctor":
@@ -508,6 +511,21 @@ func containsLine(text, want string) bool {
 		}
 	}
 	return false
+}
+
+func composeExecTTYFlags() []string {
+	if isTerminal(os.Stdin) && isTerminal(os.Stdout) {
+		return []string{"-it"}
+	}
+	return []string{"-T"}
+}
+
+func isTerminal(f *os.File) bool {
+	info, err := f.Stat()
+	if err != nil {
+		return false
+	}
+	return info.Mode()&os.ModeCharDevice != 0
 }
 
 func findVakaConfig() string {
